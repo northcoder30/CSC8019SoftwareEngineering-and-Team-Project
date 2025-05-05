@@ -67,10 +67,14 @@ export default {
       searchQuery: '',
       books: Array.from({ length: 60 }, (_, i) => ({
         id: i + 1,
+        /* Finds and displays the information of each book in the page
+         here it is currently using numbers incremented using a loop, but it needs to be fetched from the data
+         in the backend by using the necessary logic instead of just i */
         title: `Book Title ${i + 1}`,
         author: `Author ${i + 1}`,
         year: 2000 + (i % 20),
-        description: `This is the description of book ${i + 1}.`
+        description: `This is the description of book ${i + 1}.`,
+        price: `$ (i)`,  //
       }))
     };
   },
@@ -91,6 +95,7 @@ export default {
     }
   },
   methods: {
+
     showBookInfo(book) {
       this.hoveredBook = book;
     },

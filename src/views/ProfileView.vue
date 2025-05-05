@@ -48,7 +48,7 @@ export default {
     cancelBook(book){
       cancelPurchasedBook(book);
 
-      // Reset the purchase books
+      // Reset the purchase books by calling the below function in order to get webpage to be rendered with the updated list of purchased books
       this.purchasedBooks = getPurchasedBooks();
       alert(`You have successfully cancelled "${book.title}"`)
     }

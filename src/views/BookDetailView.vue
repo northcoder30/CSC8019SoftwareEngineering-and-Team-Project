@@ -1,114 +1,169 @@
 <template>
   <MainPage>
-    <div class="detail-content">
-      <div class="book-info">
-        <div class="cover-with-buttons">
-          <div class="cover"></div>
-          <div class="buttons">
-            <button class="btn orange" @click="addToWishlist">Add to Wishlist</button>
-            <button class="btn orange" @click="goToPayment">Buy Now</button>
+    <div class="book-details-container">
+      <div class="book-info-reviews">
+        <div class="book-info">
+          <BookInfo :book="book"/>
+        </div>
+        <div class="self-review">
+          <h2>Submit review</h2>
+          <ClickableStar
+              :stars="ownRating"
+              starSize="40px"
+              @click="handleRatingChange"
+          />
+          <InputBox type="email" placeholder="Subject" v-model="subject" />
+          <TextareaBox placeholder="Leave a review" v-model="review">
+            Hello
+          </TextareaBox>
+          <button class="btn orange" @click="postReview">Post review</button>
+        </div>
+        <div class="book-reviews-summary">
+          <h2>Review summary</h2>
+          <div class="stars-wrapper">
+            <Stars v-for="i in 5"
+             :stars=6-i
+             starSize="40px"
+             fontSize="25px"
+             :leftText=(6-i).toFixed(1)
+             :rightText=ratings[i-1].toString()
+            />
           </div>
         </div>
-        <div class="info">
-          <p><strong>Title:</strong> {{ book.title }}</p>
-          <p><strong>Author:</strong> {{ book.author }}</p>
-          <p><strong>Year:</strong> {{ book.year }}</p>
-          <p><strong>Category:</strong> {{ book.category }}</p>
-          <hr class="info-divider" />
-          <p class="description">
-            {{ book.description }}
-          </p>
-        </div>
-        <div class="reviews-summary">
-          <h1>Review summary</h1>
-        </div>
       </div>
-      <div>
+
+      <div class="book-reviews">
         <h1>All Reviews</h1>
+        <div class="all-reviews">
+          <div v-for="review in reviews" class="book-review">
+            <p>{{review.user_id}}</p>
+            <Stars
+                   :stars=review.star_rating
+                   starSize="36px"
+            />
+            <p>{{review.review}}</p>
+          </div>
+        </div>
       </div>
+
     </div>
   </MainPage>
 </template>
 
 <script>
 import MainPage from "@/components/MainPage.vue";
-import { getBookById } from '@/utils/bookData';
-import { addToWishlist } from '@/utils/wishlist';
-import { getPurchasedBooks } from "@/utils/purchase";
+import AverageStarRating from "@/components/AverageStarRating.vue";
+import Stars from "@/components/Stars.vue";
+import ClickableStar from "@/components/ClickableStar.vue";
+import BookInfo from "@/components/BookInfo.vue";
+import TextareaBox from "@/components/TextareaBox.vue";
+import InputBox from "@/components/InputBox.vue";
+import {getBookById, getBooksRatings, getBooksReviews, postBookReview,updatedBookRatingOccurence} from '@/utils/bookData';
+import {getUser} from "@/utils/auth";
+
+// import {getAllBookReviewRatings} from "@/utils/bookData";
 
 export default {
   name: 'BookDetailView',
   components: {
-    MainPage
+    InputBox,
+    MainPage,
+    AverageStarRating,
+    Stars,
+    ClickableStar,
+    BookInfo,
+    TextareaBox
   },
   data() {
     return {
-      book: {}
+      book: {},
+      username: {},
+      ratings: [updatedBookRatingOccurence(5),updatedBookRatingOccurence(4),updatedBookRatingOccurence(3),updatedBookRatingOccurence(2),updatedBookRatingOccurence(1)],
+      // ratings: [getAllBookReviewRatings(5),getAllBookReviewRatings(4),getAllBookReviewRatings(3),getAllBookReviewRatings(2),getAllBookReviewRatings(1)],   // function to calculate the number of ratings put for each star
+      subject: "",
+      review: "",
+      reviews: [],
+      ownRating: 3, // Default rating
     };
+  },
+  methods:{
+    postReview(){
+      const newRating = {
+        book_id: this.book.id,
+        user_id: this.username.username, // This displays the username?
+        star_rating: this.ownRating,
+        review: this.review
+      };
+      postBookReview(newRating);    // Implement check condition ti ensure
+      if (newRating.review === "")  {
+        alert("Please fill in the review before posting")
+
+      }
+      else {
+        alert('Book review posted successfully.')
+        switch (newRating.star_rating)  {
+          case 1:
+            getBooksRatings()
+        }
+        this.reviews = getBooksReviews(this.book);
+      }
+      //console.log(newRating);
+    },
+    handleRatingChange(newRating) {
+      if (Number.isInteger(newRating)){
+        //console.log("New rating selected:", newRating);
+        this.ownRating = newRating;
+      }
+    },
   },
   mounted() {
     const id = this.$route.params.id;
     this.book = getBookById(Number(id));
+    this.reviews = getBooksReviews(this.book);
+    this.username = getUser();  // Gets the logged in username from the auth.js file
+    // this.ratings = getBooksRatings(this.ratings);
+
+
+
+    // const count = getAllBookReviewRatings(ownR)
   },
-  methods: {
-    addToWishlist() {
-      addToWishlist(this.book);
-      alert('Book added to wishlist!');
-    },
-    goToPayment() {
-      const books = getPurchasedBooks();
-      if (books.length >= 10){
-        alert(`You have already purchased ${books.length} books. You cannot loan anymore books.`);
-      } else {
-        this.$router.push(`/buy/${this.book.id}`);
-      }
-    }
-  }
 };
 </script>
 
 <style scoped>
-.detail-content {
-  flex: 1;
-  padding: 40px;
+.book-details-container{
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  background: #fff;
-  overflow-y: auto;
-  gap: 40px;
+  padding: 24px;
+  width: 100%;
+  gap: 50px;
 }
 
-.book-info {
+.book-info-reviews{
   display: flex;
   flex-direction: row;
-  width: 100%;
-  gap: 10px;
+  gap: 50px;
 }
-
-.cover-with-buttons,
-.info {
-  flex: 1; /* each takes 25% if total = 4 parts */
+.book-info{
+  flex: 1
 }
-
-.reviews-summary {
-  flex: 2; /* takes 50% of the space */
+.book-reviews-summary{
+  flex: 1;
 }
-
-.cover {
-  width: 240px;
-  height: 330px;
-  background: #ccc;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+.book-reviews-summary h2{
+  text-align: start;
 }
-
-.buttons {
-  margin-top: 20px;
-  display: flex;
-  gap: 16px;
+.self-review{
+  flex: 1
 }
-
+.stars-wrapper{
+  align-items: end;
+}
+.book-review{
+  border: 1px solid black;
+  margin: 3px;
+  text-align: start;
+}
 .btn.orange {
   background-color: #FF6F00;
   color: white;
@@ -123,23 +178,4 @@ export default {
   background-color: #e65c00;
 }
 
-.info p {
-  font-size: 16px;
-  margin: 8px 0;
-  font-weight: normal;
-}
-
-.info-divider {
-  width: 100%;
-  border: none;
-  border-top: 1px solid #ccc;
-  margin: 16px 0;
-}
-
-.description {
-  margin-top: 10px;
-  line-height: 1.6;
-  color: #444;
-  white-space: pre-wrap;
-}
 </style>
