@@ -93,8 +93,34 @@ export function getBooksReviews(book){
     return allReviews.filter(b => b.book_id === book.id);
 }
 
+export function getBooksRatings(book)   {
+    const allReviews = getAllBookReviews();
+    return allReviews.filter(b => b.star_rating === book.star_rating);
+}
+
 export function postBookReview(review){
     const allReviews = getAllBookReviews();
     allReviews.push(review);
     localStorage.setItem(BOOK_REVIEWS_KEY, JSON.stringify(allReviews));
 }
+
+export function updatedBookRatingOccurence(rating)  {
+    const allReviews = getAllBookReviews();
+    const count = allReviews.filter(allReviews => allReviews.star_rating === rating);
+    return count.length;
+}
+
+
+
+// function to count number of ratings
+// export function getAllBookReviewRatings(rating)  {
+//     const allReviews = getAllBookReviews();
+//     var count = 0;
+//     let includes = bookReviews.map(star_rating=>star_rating.star_rating).includes(rating);
+//     if (includes)   {
+//         count++;
+//     }
+//
+//     return count;
+//
+// }
