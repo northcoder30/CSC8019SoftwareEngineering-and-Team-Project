@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: eBookManagement
+  datasource:
+    url: jdbc:mysql://localhost:3306/ebook_system?createDatabaseIfNotExist=true
+    username: root
+    password: MyPassword!
+  jpa:
+    show-sql: true
+  jwt:
+    secret: ${JWT_SECRET}
+    accessTokenExpiration: 1800 # 30 min
+    refreshTokenExpiration: 604800 # 7 days
